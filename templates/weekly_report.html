@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weekly Sales Report – week ending {{ k.week_end }}</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; color: #222; max-width: 860px; margin: 24px auto; padding: 0 16px; }
+  h1 { color: #1F3864; margin-bottom: 2px; }
+  .sub { color: #777; font-size: 13px; margin-top: 0; }
+  h2 { color: #1F3864; font-size: 17px; border-bottom: 2px solid #1F3864; padding-bottom: 4px; margin-top: 28px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+  .card { background: #EEF3FA; border-radius: 8px; padding: 12px 14px; }
+  .card .label { font-size: 12px; color: #555; text-transform: uppercase; letter-spacing: .5px; }
+  .card .value { font-size: 22px; font-weight: bold; color: #1F3864; margin: 4px 0; }
+  .up { color: #1a7f37; } .down { color: #c62828; } .flat { color: #777; }
+  .insight { background: #FFF8E1; border-left: 4px solid #F2B705; padding: 12px 16px; border-radius: 4px; }
+  .insight p { margin: 0 0 8px; line-height: 1.5; }
+  .insight ol { margin: 0; padding-left: 20px; line-height: 1.5; }
+  .source { font-size: 11px; color: #888; margin-top: 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th { background: #1F3864; color: #fff; text-align: left; padding: 7px 8px; }
+  td { padding: 6px 8px; border-bottom: 1px solid #e3e3e3; }
+  td.num, th.num { text-align: right; }
+  img { max-width: 100%; }
+  .footer { color: #999; font-size: 11px; margin: 30px 0 10px; }
+</style>
+</head>
+<body>
+
+{% macro change(pct) -%}
+  {%- if pct is none -%}<span class="flat">n/a</span>
+  {%- elif pct > 0 -%}<span class="up">▲ {{ "%.1f"|format(pct) }}%</span>
+  {%- elif pct < 0 -%}<span class="down">▼ {{ "%.1f"|format(-pct) }}%</span>
+  {%- else -%}<span class="flat">0.0%</span>{%- endif -%}
+{%- endmacro %}
+
+<h1>Weekly Sales Report</h1>
+<p class="sub">Week of {{ k.week_start }} to {{ k.week_end }} &nbsp;·&nbsp; compared with the previous week</p>
+
+<div class="cards">
+  <div class="card"><div class="label">Revenue</div><div class="value">{{ k.headline.revenue.value|gbp }}</div>{{ change(k.headline.revenue.wow_pct) }}</div>
+  <div class="card"><div class="label">Orders</div><div class="value">{{ k.headline.orders.value|num }}</div>{{ change(k.headline.orders.wow_pct) }}</div>
+  <div class="card"><div class="label">Avg order value</div><div class="value">{{ k.headline.avg_order_value.value|gbp }}</div>{{ change(k.headline.avg_order_value.wow_pct) }}</div>
+  <div class="card"><div class="label">Customers</div><div class="value">{{ k.headline.customers.value|num }}</div>{{ change(k.headline.customers.wow_pct) }}</div>
+  <div class="card"><div class="label">Returns</div><div class="value">{{ k.headline.returns.value|gbp }}</div><span class="flat">{{ "%.1f"|format(k.headline.returns.pct_of_revenue) }}% of revenue</span></div>
+</div>
+
+<h2>Summary and recommended actions</h2>
+<div class="insight">
+  <p>{{ insights.summary }}</p>
+  <ol>{% for a in insights.actions %}<li>{{ a }}</li>{% endfor %}</ol>
+  <div class="source">Written by: {{ insights.source }}</div>
+</div>
+
+<h2>Revenue by day</h2>
+<p class="sub">Days with no trading are not shown.</p>
+<img src="data:image/png;base64,{{ chart_png }}" alt="Revenue by day">
+
+<h2>Top 5 products</h2>
+<table>
+  <tr><th>Product</th><th class="num">Units</th><th class="num">Revenue</th><th class="num">vs last week</th></tr>
+  {% for p in k.top_products %}
+  <tr><td>{{ p.product|title }}</td><td class="num">{{ p.units|num }}</td><td class="num">{{ p.revenue|gbp }}</td><td class="num">{{ change(p.wow_pct) }}</td></tr>
+  {% endfor %}
+</table>
+
+<h2>Revenue by country</h2>
+<table>
+  <tr><th>Country</th><th class="num">Orders</th><th class="num">Revenue</th><th class="num">Share</th><th class="num">vs last week</th></tr>
+  {% for c in k.countries %}
+  <tr><td>{{ c.country }}</td><td class="num">{{ c.orders|num }}</td><td class="num">{{ c.revenue|gbp }}</td><td class="num">{{ "%.1f"|format(c.share_pct) }}%</td><td class="num">{{ change(c.wow_pct) }}</td></tr>
+  {% endfor %}
+</table>
+
+<p class="footer">Generated automatically on {{ generated_at }} by run_report.py</p>
+</body>
+</html>

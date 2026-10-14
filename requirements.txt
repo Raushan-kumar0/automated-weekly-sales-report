@@ -1,0 +1,8 @@
+pandas>=2.0
+SQLAlchemy>=2.0
+PyMySQL>=1.1
+cryptography>=41.0   # needed by PyMySQL for MySQL 8 default login method
+python-dotenv>=1.0
+Jinja2>=3.1
+matplotlib>=3.7
+pytest>=7.0
